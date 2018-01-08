@@ -48,7 +48,7 @@ public interface Transducer<T, R>
     }
     
      /**
-     * 
+     * The real power of {@code Transducers} is when composing them
      * @param <O> the output type of <dd>next</dd>
      * @param next a transducer to compose with this
      * @return a composed transducer that accepts elements of T and produces elements of O

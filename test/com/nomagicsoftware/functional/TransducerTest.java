@@ -9,6 +9,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -27,8 +29,11 @@ public class TransducerTest
    
 
     @Test
-    public void testCompose()
+    public void basicCompose()
     {
+        Transducer<Integer, Integer> smallSquares = Transducers.map((Integer i) -> i * i).compose(Transducers.filter(i -> i < 100));
+        int count  = smallSquares.transduce(() -> IntStream.range(0, 20).iterator(), counter(), 0);
+        assertEquals("", 10, count);
     }
 
     @Test
