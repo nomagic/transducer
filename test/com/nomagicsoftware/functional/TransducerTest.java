@@ -128,6 +128,8 @@ public class TransducerTest
     public void reducerSanity()
     {
         assertEquals("", 1, (int) counter().reduce(0, ""));
+        
+        assertEquals("", 2, (int) counter().reduce(Arrays.asList(1, 78), 0));
     }
     static List<String> mantra()
     {

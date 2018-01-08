@@ -89,5 +89,18 @@ public interface Transducer<T, R>
         {
             return apply(acc, element);
         }
+        
+        /**
+         * Reduces {@code input} by applying *this* to each of its elements
+         * @param input a sequence of &lt;B&gt;s
+         * @param initial the default or {@code identity} value
+         * @return the result of applying *this*
+         */
+        default A reduce(Iterable<? extends B> input, A initial)
+        {
+            for (B element : input)
+                initial = apply(initial, element);
+            return initial;
+        }
     }
 }
