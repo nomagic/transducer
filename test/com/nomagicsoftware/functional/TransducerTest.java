@@ -4,6 +4,7 @@ package com.nomagicsoftware.functional;
 import com.nomagicsoftware.functional.Transducer.Reducer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Spliterator;
@@ -18,19 +19,12 @@ import static org.junit.Assert.*;
 public class TransducerTest
 {
     
-    public TransducerTest()
-    {
-    }
-
     @Test
     public void testCall()
     {
     }
 
-    @Test
-    public void testTransduce()
-    {
-    }
+   
 
     @Test
     public void testCompose()
@@ -38,8 +32,10 @@ public class TransducerTest
     }
 
     @Test
-    public void testMapTransducer()
+    public void mapWordLength()
     {
+        Transducer<String, Integer> map = Transducers.map((String s) -> s.length());
+        assertEquals("", 6, (int) map.transduce(Arrays.asList("one", "two"), Integer::sum, 0));
     }
 
     @Test
@@ -102,6 +98,25 @@ public class TransducerTest
         trans = Transducers.flatMapI(line -> TestUtils.asIterator(line.split(splitNonWords)));
         wordCount = trans.transduce(mantra(), counter(), 0);
         assertEquals("", 24, wordCount);
+    }
+    
+    @Test
+    public void emptyWords()
+    {
+        final String splitNonWords = "\\W+";
+        Transducer<String, String> trans = Transducers.flatMap(line -> (Iterable<String>) () -> TestUtils.asIterator(line.split(splitNonWords)));
+        int wordCount = trans.transduce(Collections.emptyList(), counter(), 0);
+        assertEquals("", 0, wordCount);
+        
+        trans = Transducers.flatMapA(line -> line.split(splitNonWords));
+        wordCount = trans.transduce(Collections.emptyList(), counter(), 0);
+        assertEquals("", 0, wordCount);
+        
+        trans = Transducers.flatMapI(line -> TestUtils.asIterator(line.split(splitNonWords)));
+        wordCount = trans.transduce(Collections.emptyList(), counter(), 0);
+        assertEquals("", 0, wordCount);
+        
+        
     }
     static List<String> mantra()
     {
