@@ -43,42 +43,17 @@ public class TransducerTest
     }
 
     @Test
-    public void testFilterTransducer()
+    public void filterEven()
     {
+        Transducer<Integer, Integer> filter = Transducers.filter(TransducerTest::isEven);
+        int sumEven  = filter.transduce(Arrays.asList(1, 3, 22, 77, 8), Integer::sum, 0);
+        assertEquals("", 22 + 8, sumEven);
+        
     }
 
-    @Test
-    public void testFlatMap()
-    {
-        
-        List<List<String>> stringFlow = new ArrayList<>();
-        stringFlow.add(Arrays.asList("The", "end", "is"));
-        stringFlow.add(Arrays.asList("arriving", "soon"));
-        
-//        Transducer<Iterable<? extends String>, Integer> flatMap = Transducers.flatMap(String::length);
-//        
-//        assertEquals("", 20, (int) flatMap.transduce(stringFlow, (init, l) -> init + l, 0));
-//        
-        
-    }
     
-    @Test
-    public void fm()
-    {
-        List<String> lines = new ArrayList<>();
-        //Iterator<String> iterator = Spliterators.iterator(Arrays.spliterator(lines));
-        String _line = "The end of the world";
-        _line.split("\\s+");
-        lines.add(_line);
-        lines.add(_line);
-        
-        Transducer<String, String> trans = Transducers.flatMap(line -> iterator(line.split("\\s+")));
-        int wordCount = trans.transduce(lines, (total, _w) -> ++total, 0);
-        assertEquals("", 10, wordCount);
-        
-        wordCount = trans.transduce(Arrays.asList("hello!"), (total, _w) -> ++total, 0);
-        assertEquals("", 1, wordCount);
-    }
+    
+    
     
     @Test
     public void flattenArray()
@@ -87,7 +62,7 @@ public class TransducerTest
         lines.add("Well, What do we have here?");
         Transducer<String, String> trans = Transducers.flatMapA(line -> line.split("\\W+"));
         trans = trans.compose(Transducers.filter(s -> ! s.isEmpty() && Character.isUpperCase(s.charAt(0))));
-        assertEquals("", 2, (int) trans.transduce(lines, (total, _w) -> ++total, 0));
+        assertEquals("", 2, (int) trans.transduce(lines, counter(), 0));
     }
     
     @Test
@@ -112,9 +87,39 @@ public class TransducerTest
         assertEquals("", 12, wordCount);
     }
    
+    @Test
+    public void flattenOverload()
+    {
+        final String splitNonWords = "\\W+";
+        Transducer<String, String> trans = Transducers.flatMap(line -> (Iterable<String>) () -> TestUtils.asIterator(line.split("\\W+")));
+        int wordCount = trans.transduce(mantra(), counter(), 0);
+        assertEquals("", 24, wordCount);
+        
+        trans = Transducers.flatMapA(line -> line.split(splitNonWords));
+        wordCount = trans.transduce(mantra(), counter(), 0);
+        assertEquals("", 24, wordCount);
+        
+        trans = Transducers.flatMapI(line -> TestUtils.asIterator(line.split(splitNonWords)));
+        wordCount = trans.transduce(mantra(), counter(), 0);
+        assertEquals("", 24, wordCount);
+    }
+    static List<String> mantra()
+    {
+        List<String> mantra = new ArrayList<>();
+        mantra.add("Types should be immutable by default");
+        mantra.add("Distributed systems are just concurrent systems writ large");
+        mantra.add("If there are no tests -> then it does not work");
+        
+        return mantra;
+    }
     static <T> Reducer<Integer, T> counter()
     {
         return (total, _ignore) -> ++total;
+    }
+    
+    static boolean isEven(int i)
+    {
+        return (i & -2) == i;
     }
     static Iterable<String> iterator(String[] s)
     {
