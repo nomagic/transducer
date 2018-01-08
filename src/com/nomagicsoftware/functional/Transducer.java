@@ -71,13 +71,23 @@ public interface Transducer<T, R>
     
     
     /**
-     *
+     * A {@link BiFunction} whose return type is the same as its first argument
      * @param <A> the type of the initial value, and the return type
      * @param <B> the type of the collection item
      */
     @FunctionalInterface
     interface Reducer<A, B> extends BiFunction<A, B, A>
     {
-        
+
+        /**
+         * Just an alias for {@link BiFunction#apply(Object, Object) 
+         * @param acc the default or {@code identity} value
+         * @param element an input element
+         * @return the result of applying *this*
+         */
+        default A reduce(A acc, B element)
+        {
+            return apply(acc, element);
+        }
     }
 }

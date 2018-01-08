@@ -123,6 +123,12 @@ public class TransducerTest
         
         
     }
+    
+    @Test
+    public void reducerSanity()
+    {
+        assertEquals("", 1, (int) counter().reduce(0, ""));
+    }
     static List<String> mantra()
     {
         List<String> mantra = new ArrayList<>();
