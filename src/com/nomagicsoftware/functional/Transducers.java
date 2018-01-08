@@ -57,31 +57,7 @@ public final class Transducers
         };
     }
 
-    /**
-     *
-     * @param <T>
-     * @param <In>
-     * @param <Out>
-     * @param mapper the function to apply to each element of type In
-     * @return
-     */
-//    public static <In, Out> Transducer<Iterable<? extends In>, Out> flatMap(final Function<? super In, 
-//                                                                                           ? extends Out> mapper)
-//    {
-//        return new Transducer<Iterable<? extends In>, Out>()
-//        {
-//            @Override
-//            public <V> Reducer<V, Iterable<? extends In>> call(BiFunction<V, ? super Out, V> reducer)
-//            {
-//                return (V acc, Iterable<? extends In> group) ->
-//                {
-//                    for (In element : group)
-//                        acc = reducer.apply(acc, mapper.apply(element));
-//                    return acc;
-//                };
-//            }
-//        };
-//    }
+   
     
     /**
      * 
@@ -93,19 +69,6 @@ public final class Transducers
     public static <T, R> Transducer<T, R> flatMap(final Function<? super T, Iterable<? extends R>> decompose)
     {
         return Transducers.<T, R>flatMapI(in -> decompose.apply(in).iterator());
-//        return new Transducer<T, R>()
-//        {
-//            @Override
-//            public <V> Reducer<V, T> call(final BiFunction<V, ? super R, V> reducer)
-//            {
-//                return (V acc, T element) ->
-//                {
-//                    for (R sub : decompose.apply(element))
-//                        acc = reducer.apply(acc, sub);
-//                    return acc;
-//                };
-//            }
-//        };
     }    
 
     /**
