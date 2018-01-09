@@ -4,9 +4,15 @@ import java.util.function.BiFunction;
 
 
 /**
+ * A {@code Transducer} represents a transformation of some sequence that is reduced into a single
+ * output<br>
+ * <p>
+ * Formally, a {@code Transducer} is just a higher-order function that takes a {@link Reducer} as input,
+ * and returns another, <em>transformed</em> {@code Reducer}
+ * </p>
  * Say you want to convert a List&lt;String&gt; to List&lt;int&gt;, e.g. by computing the length of each string
- * Then a "mapping transducer" should be of type <String, int>
- * @implspec
+ * Then a "mapping transducer" should be of type &lt;String, int&gt;
+ * <p>
  * Note:  although formally, "reduction" can take a [A, ? super T -> B extends A], transducers 
  * restrict reducers to [A, ? super T -> A]
  * Think about filtering transducers - they can not produce reducers that somehow convert A's into
@@ -14,6 +20,30 @@ import java.util.function.BiFunction;
  * In practice, this not really much of a restriction, and can essentially callers can work around it
  * by providing a B identity value, and then casting the returned value to B (or casting an A, T -> B
  * to an B, T -> B)
+ * </p>
+ * <h4>Example usage</h4>
+ * <p>
+ * Let's implement word count<br>
+ * Say you have a {@literal List<String> lines}, where each item in the {@literal lines}, represents
+ * a . . . line of text; and you want to count the total # of words
+ * </p>
+ * 
+ * <pre>
+ * {@code 
+ *     List<String> lines = . . .
+ *     int words = flatMapA(line -> line.split("\\W+")).transduce(lines, counter(), 0);
+ * }
+ * </pre>
+ * <p>
+ * Simple enough.  But the real power of transducers is in <em>composing</em> them; say you want
+ * to get a list of words that are capitalized
+ * </p>
+ * <pre>
+ * {@code 
+ *     List<String> lines = . . .
+ *     List<String> importantWords = flatMapA(line -> line.split("\\W+")).compose(filter(::capitalized)).
+ *                                            transduce(lines, gather(), new ArrayList<String>());}
+ * </pre>
  * @author thurston
  * @param <T> the type of the input collection elements
  * @param <R> the type of the 'transformed' inputs <br>
@@ -24,7 +54,7 @@ public interface Transducer<T, R>
 {
     /**
      * Formally, a transducer is just a higher-order function that takes a 'reducer'
-     * and returns another 'reducer'
+     * and returns another, transformed 'reducer'
      * @param <V> the type of the 'accumulator' (first) argument of <dd>reducer</dd>
      * @param reducer a source reducer that is "transformed" by *this*
      * @return a new, 'enhanced' reducer
@@ -32,12 +62,16 @@ public interface Transducer<T, R>
     <V> Reducer<V, T> call(BiFunction<V, ? super R, V> reducer);
     
     /**
-     *
-     * @param <V>
-     * @param input
-     * @param reducer
+     * Perform a reduction on {@code input}, first applying the chain of transformations
+     * represented by *this*, and finally applying {@code reducer} <br>
+     * <h4>Implementation Note:</h4>
+     * {@code transduce} is not <em>short-circuiting</em>, all transformations will be applied
+     * to each of {@code input's} items
+     * @param <V> the return type of the <em>reduction</em>
+     * @param input the items to be reduced 
+     * @param reducer a reducer which is applied last
      * @param initial the initial value of the reduction (sometimes referred to as identity)
-     * @return
+     * @return the reduced value
      */
     default <V> V transduce(Iterable<? extends T> input, BiFunction<V, ? super R, V> reducer, V initial)
     {
@@ -64,10 +98,6 @@ public interface Transducer<T, R>
             }
         };
     }
-    
-    
-    
-    
     
     
     /**
