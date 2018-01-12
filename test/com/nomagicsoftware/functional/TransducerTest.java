@@ -20,13 +20,6 @@ public class TransducerTest
 {
     
     @Test
-    public void testCall()
-    {
-    }
-
-   
-
-    @Test
     public void basicCompose()
     {
         Transducer<Integer, Integer> smallSquares = map((Integer i) -> i * i).compose(filter(i -> i < 100));
