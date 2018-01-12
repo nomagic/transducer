@@ -1,16 +1,14 @@
 
 package com.nomagicsoftware.functional;
 
-import com.nomagicsoftware.functional.Transducer.Reducer;
+import static com.nomagicsoftware.functional.Transducers.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.IntStream;
-import java.util.stream.StreamSupport;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -131,6 +129,13 @@ public class TransducerTest
         
         assertEquals("", 2, (int) counter().reduce(Arrays.asList(1, 78), 0));
     }
+    
+    @Test
+    public void gatheringSanity()
+    {
+        Collection<? super String> copy = Transducers.<String>gather().reduce(mantra(), new ArrayList<>());
+        assertEquals("", copy, mantra());
+    }
     static List<String> mantra()
     {
         List<String> mantra = new ArrayList<>();
@@ -140,10 +145,7 @@ public class TransducerTest
         
         return mantra;
     }
-    static <T> Reducer<Integer, T> counter()
-    {
-        return (total, _ignore) -> ++total;
-    }
+    
     
     static boolean isEven(int i)
     {
@@ -154,23 +156,6 @@ public class TransducerTest
         return () -> Spliterators.iterator(Arrays.spliterator(s));
     }
     
-    static void lines()
-    {
-        String[][] lines = new String[3][];
-        Spliterator<String[]> spliterator = Arrays.spliterator(lines);
-        Iterator<String[]> iterator = Spliterators.iterator(spliterator);
-        
-        
-    }
-
-    static void disassemble()
-    {
-        String[] s = new String[] { };
-        for (String string : s)
-        {
-            System.err.println(s);
-        }
-        
-    }
+   
     
 }

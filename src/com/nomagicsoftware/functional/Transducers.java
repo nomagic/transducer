@@ -1,5 +1,7 @@
 package com.nomagicsoftware.functional;
 
+import com.nomagicsoftware.functional.Transducer.Reducer;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -118,6 +120,30 @@ public final class Transducers
                 };
             }
         };
+    }
+    
+    /**
+     * Perhaps, the most basic {@link Reducer}, gathers input into a new {@link Collection}
+     * @param <T> the type of input item
+     * @return a {@code Reducer} that appends all items of input into a new sequence
+     */
+    public static <T> Reducer<Collection<? super T>, T> gather()
+    {
+        return (sequence, item) ->
+        {
+            sequence.add(item);
+            return sequence;
+        };
+    }
+    
+    /**
+     *
+     * @param <T> the type of item to reduce
+     * @return a {@link Reducer} that simply counts the # of elements
+     */
+    public static <T> Reducer<Integer, T> counter()
+    {
+        return (total, _ignore) -> ++total;
     }
     
     public static <T> Transducer<T, T> noop()
