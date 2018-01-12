@@ -29,7 +29,7 @@ public class TransducerTest
     @Test
     public void basicCompose()
     {
-        Transducer<Integer, Integer> smallSquares = Transducers.map((Integer i) -> i * i).compose(Transducers.filter(i -> i < 100));
+        Transducer<Integer, Integer> smallSquares = map((Integer i) -> i * i).compose(filter(i -> i < 100));
         int count  = smallSquares.transduce(() -> IntStream.range(0, 20).iterator(), counter(), 0);
         assertEquals("", 10, count);
     }
@@ -37,14 +37,14 @@ public class TransducerTest
     @Test
     public void mapWordLength()
     {
-        Transducer<String, Integer> map = Transducers.map((String s) -> s.length());
+        Transducer<String, Integer> map = map((String s) -> s.length());
         assertEquals("", 6, (int) map.transduce(Arrays.asList("one", "two"), Integer::sum, 0));
     }
 
     @Test
     public void filterEven()
     {
-        Transducer<Integer, Integer> filter = Transducers.filter(TransducerTest::isEven);
+        Transducer<Integer, Integer> filter = filter(TransducerTest::isEven);
         int sumEven  = filter.transduce(Arrays.asList(1, 3, 22, 77, 8), Integer::sum, 0);
         assertEquals("", 22 + 8, sumEven);
         
@@ -59,8 +59,8 @@ public class TransducerTest
     {
         List<String> lines = new ArrayList<>();
         lines.add("Well, What do we have here?");
-        Transducer<String, String> trans = Transducers.flatMapA(line -> line.split("\\W+"));
-        trans = trans.compose(Transducers.filter(s -> ! s.isEmpty() && Character.isUpperCase(s.charAt(0))));
+        Transducer<String, String> trans = flatMapA(line -> line.split("\\W+"));
+        trans = trans.compose(filter(s -> ! s.isEmpty() && Character.isUpperCase(s.charAt(0))));
         assertEquals("", 2, (int) trans.transduce(lines, counter(), 0));
     }
     
@@ -69,7 +69,7 @@ public class TransducerTest
     {
         List<String> lines = new ArrayList<>();
         lines.add("Well, What do we have here?");
-        Transducer<String, String> trans = Transducers.flatMapI(line -> TestUtils.asIterator(line.split("\\W+")));
+        Transducer<String, String> trans = flatMapI(line -> TestUtils.asIterator(line.split("\\W+")));
         int wordCount = trans.transduce(lines, counter(), 0);
         assertEquals("", 6, wordCount);
         
@@ -94,11 +94,11 @@ public class TransducerTest
         int wordCount = trans.transduce(mantra(), counter(), 0);
         assertEquals("", 24, wordCount);
         
-        trans = Transducers.flatMapA(line -> line.split(splitNonWords));
+        trans = flatMapA(line -> line.split(splitNonWords));
         wordCount = trans.transduce(mantra(), counter(), 0);
         assertEquals("", 24, wordCount);
         
-        trans = Transducers.flatMapI(line -> TestUtils.asIterator(line.split(splitNonWords)));
+        trans = flatMapI(line -> TestUtils.asIterator(line.split(splitNonWords)));
         wordCount = trans.transduce(mantra(), counter(), 0);
         assertEquals("", 24, wordCount);
     }
@@ -111,11 +111,11 @@ public class TransducerTest
         int wordCount = trans.transduce(Collections.emptyList(), counter(), 0);
         assertEquals("", 0, wordCount);
         
-        trans = Transducers.flatMapA(line -> line.split(splitNonWords));
+        trans = flatMapA(line -> line.split(splitNonWords));
         wordCount = trans.transduce(Collections.emptyList(), counter(), 0);
         assertEquals("", 0, wordCount);
         
-        trans = Transducers.flatMapI(line -> TestUtils.asIterator(line.split(splitNonWords)));
+        trans = flatMapI(line -> TestUtils.asIterator(line.split(splitNonWords)));
         wordCount = trans.transduce(Collections.emptyList(), counter(), 0);
         assertEquals("", 0, wordCount);
         
@@ -133,7 +133,7 @@ public class TransducerTest
     @Test
     public void gatheringSanity()
     {
-        Collection<? super String> copy = Transducers.<String>gather().reduce(mantra(), new ArrayList<>());
+        Collection<? super String> copy = gather().reduce(mantra(), new ArrayList<>());
         assertEquals("", copy, mantra());
     }
     static List<String> mantra()
