@@ -6,7 +6,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
- * Factory methods for common {@link Transducer transducers}
+ * Factory methods for common {@link Transducer transducers} and {@link Transducer.Reducer reducers}
  * @author thurston
  */
 public final class Transducers 
