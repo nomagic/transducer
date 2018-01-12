@@ -4,11 +4,14 @@ package com.nomagicsoftware.functional;
 import com.nomagicsoftware.functional.Transducer.Reducer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 import org.junit.Test;
@@ -131,13 +134,50 @@ public class TransducerTest
         
         assertEquals("", 2, (int) counter().reduce(Arrays.asList(1, 78), 0));
     }
+    
+    @Test
+    public void gather()
+    {
+        Reducer<Collection<? super String>, String> gather = Transducers.<String>gather();
+        Collection<? super String> copy = gather.reduce(mantra(), new ArrayList<>());
+        assertEquals("", mantra(), copy);
+        List<Object> list = new ArrayList<>();
+        copy  = gather.reduce(mantra(), list);
+        assertEquals("", mantra(), copy);
+        
+    }
+    
+    @Test
+    public void findMatchingLine()
+    {
+        Optional<String> match = Transducers.<String, String>flatMapA(line -> line.split("\\W+")).
+                                                             firstT(mantra(), w -> w.equals("systems"));
+        assertTrue("", match.isPresent());
+        assertEquals("", mantra().get(1), match.get());
+        
+        match = Transducers.<String, String>flatMapA(line -> line.split("\\W+")).firstT(mantra(), 
+                                                                                        w -> w.equals("partible"));
+        assertFalse("", match.isPresent());
+        
+        
+    }
+    
+    @Test
+    public void matchingWord()
+    {
+        Optional<String> match = Transducers.<String, String>flatMapA(line -> line.split("\\W+")).
+                                                             firstR(mantra(), w -> w.equals("systems"));
+        assertTrue("", match.isPresent());
+        assertEquals("", "systems", match.get());
+    }
     static List<String> mantra()
     {
         List<String> mantra = new ArrayList<>();
         mantra.add("Types should be immutable by default");
         mantra.add("Distributed systems are just concurrent systems writ large");
         mantra.add("If there are no tests -> then it does not work");
-        
+        //mantra.add("Passing the tests is much more reliable than passing the code review");
+        //ConcurrentHashMap chm;
         return mantra;
     }
     static <T> Reducer<Integer, T> counter()

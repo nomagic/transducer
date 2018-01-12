@@ -1,5 +1,7 @@
 package com.nomagicsoftware.functional;
 
+import com.nomagicsoftware.functional.Transducer.Reducer;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -77,7 +79,7 @@ public final class Transducers
      * @param <T> the type to "flatten"
      * @param <R> the decomposed type
      * @param decompose a {@link Function function} that decomposes a &lt;T&gt; into 0 or more &lt;R&gt;'s
-     * @return
+     * @return a {@code Transducer} that transforms {@code <T>'s into 0 or more <R>'s}
      */
     public static <T, R> Transducer<T, R> flatMapI(final Function<? super T, Iterator<? extends R>> decompose)
     {
@@ -119,7 +121,30 @@ public final class Transducers
             }
         };
     }
-    
+
+    /**
+     * A transducer that drops the first {@code count} elements
+     * @param <T>
+     * @param count
+     * @return
+     */
+    public static <T> Transducer<T, T> drop(int count)
+    {
+        return new Transducer<T, T>()
+        {
+            @Override
+            public <V> Reducer<V, T> call(BiFunction<V, ? super T, V> reducer)
+            {
+                final int[] cell = { count };
+                return (V acc, T item) ->
+                {
+                    if (cell[0]-- > 0)
+                        return acc;
+                    return reducer.apply(acc, item);
+                };
+            }
+        };
+    }
     public static <T> Transducer<T, T> noop()
     {
         return new Transducer<T, T>()
@@ -132,4 +157,22 @@ public final class Transducers
         };
     }
     
+    /**
+     * Perhaps, the most basic {@link Reducer}, gathers input into a new {@link Collection}
+     * @param <T> the type of input item
+     * @return a {@code Reducer} that appends all items of input into a new sequence
+     */
+    public static <T> Reducer<Collection<? super T>, T> gather()
+    {
+        return (sequence, item) ->
+        {
+            sequence.add(item);
+            return sequence;
+        };
+    }
+    
+    public static <T> Reducer<Integer, T> counter()
+    {
+        return (total, _ignore) -> ++total;
+    }
 }

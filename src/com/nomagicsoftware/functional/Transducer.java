@@ -1,6 +1,9 @@
 package com.nomagicsoftware.functional;
 
+import java.util.Iterator;
+import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.Predicate;
 
 
 /**
@@ -98,6 +101,110 @@ public interface Transducer<T, R>
             }
         };
     }
+    
+    default Optional<T> firstT(Iterable<? extends T> input, Predicate<? super R> test)
+    {
+        Reducer<Integer, T> reducer = compose(Transducers.filter(test)).call(Transducers.counter());
+        
+        for (T item : input)
+        {
+            if (reducer.apply(0, item) > 0)
+                return Optional.of(item);
+        }
+        return Optional.empty();
+    }
+    
+    /**
+     * Short-circuiting
+     * @param input the type of input
+     * @param test
+     * @return
+     * @see #firstT(Iterable, Predicate) 
+     */
+    default Optional<R> firstR(Iterable<? extends T> input, Predicate<? super R> test)
+    {
+        final Object sentinel = new Object();
+        Object[] tuple = { sentinel };
+        Reducer<R, R> identity = (_i, item) -> 
+        {
+            if (sentinel == tuple[0])
+                tuple[0] = item;
+            return item;
+        };
+        Reducer<R, T> reducer = compose(Transducers.filter(test)).call(identity);
+        for (T item : input)
+        {
+            R reduce = reducer.reduce(null, item);
+            if (tuple[0] != sentinel)
+                    
+                return Optional.of((R) tuple[0]);
+        }
+        return Optional.empty();
+    }
+    
+    default boolean any(Iterable<? extends T> input, Predicate<? super R> test)
+    {
+        Optional<T> match = firstT(input, test);
+        return match.isPresent();
+    }
+    
+    /**
+     * {@code transduce} over the first {@code count} elements of {@code input} <br>
+     * Short-circuiting
+     * @param <V>
+     * @param input
+     * @param reducer
+     * @param initial
+     * @param count
+     * @return
+     */
+    default <V> V takeTransduce(Iterable<? extends T> input, BiFunction<V, ? super R, V> reducer, 
+                                V initial, int count)
+    {
+        Reducer<V, T> transReducer = call(reducer);
+        
+        for (Iterator<? extends T> iOverT = input.iterator(); count > 0 && iOverT.hasNext(); count--)
+            initial = transReducer.apply(initial, iOverT.next());
+            
+        return initial;
+    }
+    
+    /**
+     * {@code transduce} over the first {@code count} {@code <R>'s} of {@code input} <br>
+     * Short-circuiting<br>
+     * <em>Invariant:</em> {@code reducer} will be invoked no more than {@code count} times <br>
+     * Use this variant when transduction chain includes a one-to-many {@code flatMap}
+     * @param <V> the reduction type
+     * @param input
+     * @param reducer
+     * @param initial
+     * @param count maximum # of {@code <R>'s} to apply {@code reducer} to
+     * @return the reduction
+     */
+    default <V> V takeTransduceR(Iterable<? extends T> input, final BiFunction<V, ? super R, V> reducer, 
+                                 V initial, final int count)
+     {
+        final int[] cursor = { 0 };
+        Reducer<V, R> wrapper = (V acc, R r) ->
+        {
+            if (cursor[0]++ < count)
+                return reducer.apply(acc, r);
+            return acc;
+        };
+        
+        Reducer<V, T> transformed = call(wrapper);
+        for (T item : input)
+        {
+            if (cursor[0] < count)
+                initial = transformed.apply(initial, item);
+            else
+                break;
+                
+        }
+        
+        
+        return initial;
+     }
     
     
     /**
